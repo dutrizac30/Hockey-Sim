@@ -19,6 +19,48 @@ pygame.display.set_caption('Hockey Sim')
  
 clock = pygame.time.Clock()
 
+# To do list:
+# - Add velocity to control (Accelerate, deccelerate)
+# - Collision with the boards
+# - Collision with the net
+# - Arbitrary direction
+# - Add puck
+# - Collision with puck
+# - Add second player
+# - Shoot puck
+# - Pass puck
+# - Detect puck in the net
+# - Keep score
+# - Player collision
+# - Fall down when hitting boards too fast/ gettting hit with puck
+# - Add goalie
+# - Fill all positions on ice
+# - Create the AI
+# - Add icing/offside
+
+
+class Player(pygame.sprite.Sprite):
+
+    def __init__(self, color, width, height):
+
+       pygame.sprite.Sprite.__init__(self)
+
+       self.velocity = 1
+       self.direction = (1, 0)
+
+       self.image = pygame.Surface([width * rink_scale, height * rink_scale])
+       self.image.fill(color)
+
+       self.rect = self.image.get_rect()
+       
+    def update(self):
+        self.rect.x = self.rect.x + self.direction[0] * self.velocity 
+        self.rect.y = self.rect.y + self.direction[1] * self.velocity 
+
+    def control(self, x, y):
+        self.direction = (x, y)
+
+
 def draw_rink_line(rink, horizontal, width, colour):
     pygame.draw.rect(rink, colour, [(horizontal * rink_scale) - width * rink_scale / 2, 0, width * rink_scale, 85 * rink_scale])
 
@@ -57,6 +99,15 @@ def drawRink(display):
     draw_rink_line(rink, 190, thin_line_width, red)
     display.blit(rink, (0, 0))
 
+all_players_list = pygame.sprite.Group()
+
+player = Player(red, 3, 3)
+
+player.rect.x = screen_width / 2
+player.rect.y = screen_height / 2
+
+all_players_list.add(player)
+
 def gameLoop():
     game_over = False
    
@@ -64,10 +115,31 @@ def gameLoop():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 game_over = True
- 
+
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_LEFT:
+                player.control(-1, 0)
+            if event.key == pygame.K_RIGHT:
+                player.control(1, 0)
+            if event.key == pygame.K_UP:
+                player.control(0, -1)
+            if event.key == pygame.K_DOWN:
+                player.control(0, 1)
+            if event.key == pygame.K_SPACE:
+                print("Shoot!")
+
+        # if event.type == pygame.KEYUP:
+        #     if event.key == pygame.K_LEFT:
+        #         player.control(1, 0)
+        #     if event.key == pygame.K_RIGHT:
+        #         player.control(-1, 0)
+
         drawRink(dis)
+        all_players_list.update()
+        all_players_list.draw(dis)
         pygame.display.update()
         clock.tick(30)
+        
  
     pygame.quit()
     quit()

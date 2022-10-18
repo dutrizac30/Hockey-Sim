@@ -1,3 +1,4 @@
+from pickle import FRAME
 import pygame
 import time
 import random
@@ -19,8 +20,12 @@ pygame.display.set_caption('Hockey Sim')
  
 clock = pygame.time.Clock()
 
+FRAME_RATE = 30
+
+MAX_PLAYER_VELOCITY = 36 / FRAME_RATE
+
 # To do list:
-# - Add velocity to control (Accelerate, deccelerate)
+# - Add velocity to accelerate (Accelerate, deccelerate)
 # - Collision with the boards
 # - Collision with the net
 # - Arbitrary direction
@@ -45,8 +50,10 @@ class Player(pygame.sprite.Sprite):
 
        pygame.sprite.Sprite.__init__(self)
 
-       self.velocity = 1
-       self.direction = (1, 0)
+       self.velocity = (0, 0)
+       self.acceleration = (0, 0)
+       self.x = 0.0
+       self.y = 0.0
 
        self.image = pygame.Surface([width * rink_scale, height * rink_scale])
        self.image.fill(color)
@@ -54,11 +61,18 @@ class Player(pygame.sprite.Sprite):
        self.rect = self.image.get_rect()
        
     def update(self):
-        self.rect.x = self.rect.x + self.direction[0] * self.velocity 
-        self.rect.y = self.rect.y + self.direction[1] * self.velocity 
+        self.velocity = (self.velocity[0] + self.acceleration[0], self.velocity[1] + self.acceleration[1])
+        self.x = self.x + self.velocity[0] 
+        self.y = self.y + self.velocity[1]
+        self.rect.x = self.x
+        self.rect.y = self.y
+        print(self.rect)
 
-    def control(self, x, y):
-        self.direction = (x, y)
+    def accelerate(self, x, y):
+        self.velocity = (x, y)
+
+    def coast(self):
+        self.acceleration = (-self.velocity[0] * 0.01, -self.velocity[1] * 0.01)
 
 
 def draw_rink_line(rink, horizontal, width, colour):
@@ -118,27 +132,31 @@ def gameLoop():
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_LEFT:
-                player.control(-1, 0)
+                player.accelerate(-MAX_PLAYER_VELOCITY, 0)
             if event.key == pygame.K_RIGHT:
-                player.control(1, 0)
+                player.accelerate(MAX_PLAYER_VELOCITY, 0)
             if event.key == pygame.K_UP:
-                player.control(0, -1)
+                player.accelerate(0, -MAX_PLAYER_VELOCITY)
             if event.key == pygame.K_DOWN:
-                player.control(0, 1)
+                player.accelerate(0, MAX_PLAYER_VELOCITY)
             if event.key == pygame.K_SPACE:
                 print("Shoot!")
 
-        # if event.type == pygame.KEYUP:
-        #     if event.key == pygame.K_LEFT:
-        #         player.control(1, 0)
-        #     if event.key == pygame.K_RIGHT:
-        #         player.control(-1, 0)
+        if event.type == pygame.KEYUP:
+            if event.key == pygame.K_LEFT:
+                player.coast()
+            if event.key == pygame.K_RIGHT:
+                player.coast()
+            if event.key == pygame.K_UP:
+                player.coast()
+            if event.key == pygame.K_DOWN:
+                player.coast()
 
         drawRink(dis)
         all_players_list.update()
         all_players_list.draw(dis)
         pygame.display.update()
-        clock.tick(30)
+        clock.tick(FRAME_RATE)
         
  
     pygame.quit()

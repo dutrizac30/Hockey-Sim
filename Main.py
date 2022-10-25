@@ -22,10 +22,9 @@ clock = pygame.time.Clock()
 
 FRAME_RATE = 30
 
-MAX_PLAYER_VELOCITY = 36 / FRAME_RATE
+MAX_PLAYER_VELOCITY = 80 / FRAME_RATE
 
 # To do list:
-# - Add velocity to accelerate (Accelerate, deccelerate)
 # - Collision with the boards
 # - Collision with the net
 # - Arbitrary direction
@@ -47,13 +46,10 @@ MAX_PLAYER_VELOCITY = 36 / FRAME_RATE
 class Player(pygame.sprite.Sprite):
 
     def __init__(self, color, width, height):
-
        pygame.sprite.Sprite.__init__(self)
-
-       self.velocity = (0, 0)
-       self.acceleration = (0, 0)
-       self.x = 0.0
-       self.y = 0.0
+       self.velocity = pygame.math.Vector2(0, 0)
+       self.acceleration = pygame.math.Vector2(0, 0)
+       self.pos = pygame.math.Vector2(0, 0)
 
        self.image = pygame.Surface([width * rink_scale, height * rink_scale])
        self.image.fill(color)
@@ -61,18 +57,20 @@ class Player(pygame.sprite.Sprite):
        self.rect = self.image.get_rect()
        
     def update(self):
-        self.velocity = (self.velocity[0] + self.acceleration[0], self.velocity[1] + self.acceleration[1])
-        self.x = self.x + self.velocity[0] 
-        self.y = self.y + self.velocity[1]
-        self.rect.x = self.x
-        self.rect.y = self.y
-        print(self.rect)
+        self.velocity = self.velocity + self.acceleration
+        if self.velocity.length() > 0:
+            self.velocity.clamp_magnitude_ip(MAX_PLAYER_VELOCITY)
+        self.pos = self.pos + self.velocity
+        self.rect.x = self.pos.x
+        self.rect.y = self.pos.y
 
     def accelerate(self, x, y):
-        self.velocity = (x, y)
+        # self.velocity.update(x, y)
+        # print(self.rect)
+        self.acceleration.update(x/5, y/5)
 
     def coast(self):
-        self.acceleration = (-self.velocity[0] * 0.01, -self.velocity[1] * 0.01)
+        self.acceleration = -self.velocity * 0.03
 
 
 def draw_rink_line(rink, horizontal, width, colour):
@@ -124,7 +122,7 @@ all_players_list.add(player)
 
 def gameLoop():
     game_over = False
-   
+    pygame.key.set_repeat(0, 0)
     while not game_over:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:

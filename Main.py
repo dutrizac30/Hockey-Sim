@@ -42,6 +42,19 @@ MAX_PLAYER_VELOCITY = 80 / FRAME_RATE
 # - Create the AI
 # - Add icing/offside
 
+class Board(pygame.sprite.Sprite):
+    def __init__(self, x, y, width, height, color):
+        super().__init__()
+        self.image = pygame.Surface([width * rink_scale, height * rink_scale])
+        self.image.fill(color)
+        self.rect = self.image.get_rect()
+        self.rect.x = x * rink_scale
+        self.rect.y = y * rink_scale
+        
+    def handle_collision(self, target):
+        target.pos.x = 10
+        target.pos.y = 10
+        target.velocity = pygame.math.Vector2(0, 0)
 
 class Player(pygame.sprite.Sprite):
 
@@ -111,14 +124,18 @@ def drawRink(display):
     draw_rink_line(rink, 190, thin_line_width, red)
     display.blit(rink, (0, 0))
 
+
 all_players_list = pygame.sprite.Group()
+all_boards_list = pygame.sprite.Group()
 
 player = Player(red, 3, 3)
+board = Board(100, 40, 20, 20, black)
 
 player.rect.x = screen_width / 2
 player.rect.y = screen_height / 2
 
 all_players_list.add(player)
+all_boards_list.add(board)
 
 def gameLoop():
     game_over = False
@@ -152,7 +169,11 @@ def gameLoop():
 
         drawRink(dis)
         all_players_list.update()
+        collision_list = pygame.sprite.spritecollide(player, all_boards_list, False)
+        for sprite in collision_list:
+            sprite.handle_collision(player)
         all_players_list.draw(dis)
+        all_boards_list.draw(dis)
         pygame.display.update()
         clock.tick(FRAME_RATE)
         

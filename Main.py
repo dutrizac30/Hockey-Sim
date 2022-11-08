@@ -22,7 +22,7 @@ clock = pygame.time.Clock()
 
 FRAME_RATE = 30
 
-MAX_PLAYER_VELOCITY = 80 / FRAME_RATE
+MAX_PLAYER_VELOCITY = 85 / FRAME_RATE
 
 # To do list:
 # - Collision with the boards
@@ -42,19 +42,20 @@ MAX_PLAYER_VELOCITY = 80 / FRAME_RATE
 # - Create the AI
 # - Add icing/offside
 
-class Board(pygame.sprite.Sprite):
-    def __init__(self, x, y, width, height, color):
-        super().__init__()
-        self.image = pygame.Surface([width * rink_scale, height * rink_scale])
-        self.image.fill(color)
-        self.rect = self.image.get_rect()
-        self.rect.x = x * rink_scale
-        self.rect.y = y * rink_scale
+# class Board(pygame.sprite.Sprite):
+#     def __init__(self, x, y, width, height, color):
+#         super().__init__()
+#         self.image = pygame.Surface([width * rink_scale, height * rink_scale])
+#         self.image.fill(color)
+#         self.rect = self.image.get_rect()
+#         self.rect.x = x * rink_scale
+#         self.rect.y = y * rink_scale
         
-    def handle_collision(self, target):
-        target.pos.x = 10
-        target.pos.y = 10
-        target.velocity = pygame.math.Vector2(0, 0)
+#     def handle_collision(self, target):
+#         print(time.time())
+#         # target.pos.x = 10
+#         # target.pos.y = 10
+#         # target.velocity = pygame.math.Vector2(0, 0)
 
 class Player(pygame.sprite.Sprite):
 
@@ -85,6 +86,25 @@ class Player(pygame.sprite.Sprite):
     def coast(self):
         self.acceleration = -self.velocity * 0.03
 
+def RinkCollide(target):
+    if target.pos.y + target.rect.height > screen_height:
+        print("collided with bottom")
+        target.pos.y = (screen_height - target.rect.height) - (target.pos.y - (screen_height - target.rect.height))
+        target.velocity.y = -target.velocity.y
+        print(target.rect.height)
+    elif target.pos.y < 0:
+        print("collided with top")
+        target.pos.y = -target.pos.y
+        target.velocity.y = -target.velocity.y
+    if target.pos.x + target.rect.width > screen_width:
+        print("collided with right")
+        target.pos.x = (screen_width - target.rect.width) - (target.pos.x - (screen_width - target.rect.width))
+        target.velocity.x = -target.velocity.x
+    elif target.pos.x < 0:
+        print("collided with left")
+        target.pos.x = -target.pos.x
+        target.velocity.x = -target.velocity.x
+    
 
 def draw_rink_line(rink, horizontal, width, colour):
     pygame.draw.rect(rink, colour, [(horizontal * rink_scale) - width * rink_scale / 2, 0, width * rink_scale, 85 * rink_scale])
@@ -126,16 +146,16 @@ def drawRink(display):
 
 
 all_players_list = pygame.sprite.Group()
-all_boards_list = pygame.sprite.Group()
+# all_boards_list = pygame.sprite.Group()
 
 player = Player(red, 3, 3)
-board = Board(100, 40, 20, 20, black)
+# board = Board(100, 40, 1, 20, black)
 
 player.rect.x = screen_width / 2
 player.rect.y = screen_height / 2
 
 all_players_list.add(player)
-all_boards_list.add(board)
+# all_boards_list.add(board)
 
 def gameLoop():
     game_over = False
@@ -169,11 +189,12 @@ def gameLoop():
 
         drawRink(dis)
         all_players_list.update()
-        collision_list = pygame.sprite.spritecollide(player, all_boards_list, False)
-        for sprite in collision_list:
-            sprite.handle_collision(player)
+        RinkCollide(player)
+        # collision_list = pygame.sprite.spritecollide(player, all_boards_list, False)
+        # for sprite in collision_list:
+        #     sprite.handle_collision(player)
         all_players_list.draw(dis)
-        all_boards_list.draw(dis)
+        # all_boards_list.draw(dis)
         pygame.display.update()
         clock.tick(FRAME_RATE)
         

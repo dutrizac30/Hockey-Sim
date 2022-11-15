@@ -48,8 +48,8 @@ class Net(pygame.sprite.Sprite):
         self.image = pygame.Surface([NET_WIDTH, NET_HEIGHT], pygame.SRCALPHA, 32)
         self.image = self.image.convert_alpha()
         self.rect = self.image.get_rect()
-        self.rect.x = x 
-        self.rect.y = y
+        self.rect.x = x * rink_scale
+        self.rect.y = y * rink_scale
         pygame.draw.rect(self.image, red, [0, 0, self.rect.width, self.rect.height], border_top_left_radius= 1 * rink_scale, border_bottom_left_radius= 1 * rink_scale,)
         if flip:
             self.image = pygame.transform.flip(self.image, True, False)
@@ -97,6 +97,22 @@ class Player(pygame.sprite.Sprite):
 
     def coast(self):
         self.acceleration = -self.velocity * 0.03
+
+class Puck(pygame.sprite.Sprite):
+    def __init__(self, width, height):
+       pygame.sprite.Sprite.__init__(self)
+       self.velocity = pygame.math.Vector2(0, 0)
+       self.acceleration = pygame.math.Vector2(0, 0)
+       self.pos = pygame.math.Vector2(0, 0)
+
+       self.image = pygame.Surface([width * rink_scale, height * rink_scale])
+       self.image.fill(black)
+
+       self.rect = self.image.get_rect()
+
+    def handle_collision(self, target):
+        pass
+
 
 def RinkCollide(target):
     if target.pos.y + target.rect.height > screen_height:
@@ -147,8 +163,9 @@ all_players_list = pygame.sprite.Group()
 all_sprites_list = pygame.sprite.Group()
 
 player = Player(red, 3, 3)
-left_net = Net(6 * rink_scale, (85 - 6) / 2 * rink_scale)
-right_net = Net(190 * rink_scale, (85 - 6) / 2 * rink_scale, True)
+left_net = Net(6, (85 - 6) / 2)
+right_net = Net(190, (85 - 6) / 2, True)
+puck = Puck(2, 2)
 
 player.rect.x = screen_width / 2
 player.rect.y = screen_height / 2
@@ -157,6 +174,7 @@ all_players_list.add(player)
 all_sprites_list.add(left_net)
 all_sprites_list.add(right_net)
 all_sprites_list.add(player)
+all_sprites_list.add(puck)
 
 def gameLoop():
     game_over = False

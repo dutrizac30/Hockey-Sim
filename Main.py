@@ -15,6 +15,9 @@ rink_scale = 5
 screen_width = 200 * rink_scale
 screen_height = 85 * rink_scale
 
+NET_WIDTH = 4 * rink_scale
+NET_HEIGHT = 6 * rink_scale
+
 dis = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption('Hockey Sim')
  
@@ -25,9 +28,6 @@ FRAME_RATE = 30
 MAX_PLAYER_VELOCITY = 85 / FRAME_RATE
 
 # To do list:
-# - Collision with the boards
-# - Collision with the net
-# - Arbitrary direction
 # - Add puck
 # - Collision with puck
 # - Add second player
@@ -42,20 +42,32 @@ MAX_PLAYER_VELOCITY = 85 / FRAME_RATE
 # - Create the AI
 # - Add icing/offside
 
-# class Board(pygame.sprite.Sprite):
-#     def __init__(self, x, y, width, height, color):
-#         super().__init__()
-#         self.image = pygame.Surface([width * rink_scale, height * rink_scale])
-#         self.image.fill(color)
-#         self.rect = self.image.get_rect()
-#         self.rect.x = x * rink_scale
-#         self.rect.y = y * rink_scale
+class Net(pygame.sprite.Sprite):
+    def __init__(self, x, y, flip = False):
+        super().__init__()
+        self.image = pygame.Surface([NET_WIDTH, NET_HEIGHT], pygame.SRCALPHA, 32)
+        self.image = self.image.convert_alpha()
+        self.rect = self.image.get_rect()
+        self.rect.x = x 
+        self.rect.y = y
+        pygame.draw.rect(self.image, red, [0, 0, self.rect.width, self.rect.height], border_top_left_radius= 1 * rink_scale, border_bottom_left_radius= 1 * rink_scale,)
+        if flip:
+            self.image = pygame.transform.flip(self.image, True, False)
         
-#     def handle_collision(self, target):
-#         print(time.time())
-#         # target.pos.x = 10
-#         # target.pos.y = 10
-#         # target.velocity = pygame.math.Vector2(0, 0)
+    def handle_collision(self, target):
+        print(time.time())
+        target.pos = target.pos - target.velocity
+        target.velocity = -target.velocity
+        
+def draw_net(rink, horizontal, flip):
+    size = width, height = ( 4 * rink_scale, 6 * rink_scale)
+    net = pygame.Surface(size, pygame.SRCALPHA, 32) 
+    net = net.convert_alpha()
+    pygame.draw.rect(net, red, [0, 0, 4 * rink_scale, 6 * rink_scale], border_top_left_radius= 1 * rink_scale, border_bottom_left_radius= 1 * rink_scale,)
+    if flip:
+        net = pygame.transform.flip(net, True, False)
+    rink.blit(net, (horizontal * rink_scale, (85 - 6) / 2 * rink_scale))
+
 
 class Player(pygame.sprite.Sprite):
 
@@ -91,7 +103,6 @@ def RinkCollide(target):
         print("collided with bottom")
         target.pos.y = (screen_height - target.rect.height) - (target.pos.y - (screen_height - target.rect.height))
         target.velocity.y = -target.velocity.y
-        print(target.rect.height)
     elif target.pos.y < 0:
         print("collided with top")
         target.pos.y = -target.pos.y
@@ -109,15 +120,6 @@ def RinkCollide(target):
 def draw_rink_line(rink, horizontal, width, colour):
     pygame.draw.rect(rink, colour, [(horizontal * rink_scale) - width * rink_scale / 2, 0, width * rink_scale, 85 * rink_scale])
 
-def draw_net(rink, horizontal, flip):
-    size = width, height = ( 4 * rink_scale, 6 * rink_scale)
-    net = pygame.Surface(size, pygame.SRCALPHA, 32) 
-    net = net.convert_alpha()
-    pygame.draw.rect(net, red, [0, 0, 4 * rink_scale, 6 * rink_scale], border_top_left_radius= 1 * rink_scale, border_bottom_left_radius= 1 * rink_scale,)
-    if flip:
-        net = pygame.transform.flip(net, True, False)
-    rink.blit(net, (horizontal * rink_scale, (85 - 6) / 2 * rink_scale))
-
 def drawRink(display):
     size = width, height = (200 * rink_scale, 85 * rink_scale)
     rink = pygame.Surface(size)
@@ -128,10 +130,6 @@ def drawRink(display):
     pygame.draw.circle(rink, blue, [10 * rink_scale, 85 * rink_scale / 2], 6 * rink_scale, draw_top_right = True, draw_bottom_right= True)
     #Right Crease
     pygame.draw.circle(rink, blue, [190 * rink_scale, 85 * rink_scale / 2], 6 * rink_scale, draw_top_left = True, draw_bottom_left= True)
-    #Left Net
-    draw_net(rink, 10 - 4, False)
-    #Right Net
-    draw_net(rink, 190, True)
     #Center line
     draw_rink_line(rink, 100, big_line_width, red)
     #Left Blueline
@@ -146,16 +144,19 @@ def drawRink(display):
 
 
 all_players_list = pygame.sprite.Group()
-# all_boards_list = pygame.sprite.Group()
+all_sprites_list = pygame.sprite.Group()
 
 player = Player(red, 3, 3)
-# board = Board(100, 40, 1, 20, black)
+left_net = Net(6 * rink_scale, (85 - 6) / 2 * rink_scale)
+right_net = Net(190 * rink_scale, (85 - 6) / 2 * rink_scale, True)
 
 player.rect.x = screen_width / 2
 player.rect.y = screen_height / 2
 
 all_players_list.add(player)
-# all_boards_list.add(board)
+all_sprites_list.add(left_net)
+all_sprites_list.add(right_net)
+all_sprites_list.add(player)
 
 def gameLoop():
     game_over = False
@@ -190,11 +191,11 @@ def gameLoop():
         drawRink(dis)
         all_players_list.update()
         RinkCollide(player)
-        # collision_list = pygame.sprite.spritecollide(player, all_boards_list, False)
-        # for sprite in collision_list:
-        #     sprite.handle_collision(player)
-        all_players_list.draw(dis)
-        # all_boards_list.draw(dis)
+        collision_list = pygame.sprite.spritecollide(player, all_sprites_list, False)
+        for sprite in collision_list:
+            if sprite != player:
+                sprite.handle_collision(player)
+        all_sprites_list.draw(dis)
         pygame.display.update()
         clock.tick(FRAME_RATE)
         

@@ -18,6 +18,9 @@ screen_height = 85 * rink_scale
 NET_WIDTH = 4 * rink_scale
 NET_HEIGHT = 6 * rink_scale
 
+PUCK_WIDTH = 2 * rink_scale
+PUCK_HEIGHT = 2 * rink_scale
+
 dis = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption('Hockey Sim')
  
@@ -28,8 +31,7 @@ FRAME_RATE = 30
 MAX_PLAYER_VELOCITY = 85 / FRAME_RATE
 
 # To do list:
-# - Add puck
-# - Collision with puck
+# - Collision/carry puck
 # - Add second player
 # - Shoot puck
 # - Pass puck
@@ -76,6 +78,7 @@ class Player(pygame.sprite.Sprite):
        self.velocity = pygame.math.Vector2(0, 0)
        self.acceleration = pygame.math.Vector2(0, 0)
        self.pos = pygame.math.Vector2(0, 0)
+       self.puck = None
 
        self.image = pygame.Surface([width * rink_scale, height * rink_scale])
        self.image.fill(color)
@@ -89,6 +92,9 @@ class Player(pygame.sprite.Sprite):
         self.pos = self.pos + self.velocity
         self.rect.x = self.pos.x
         self.rect.y = self.pos.y
+        if self.puck != None:
+            self.puck.pos.x = self.pos.x + 5
+            self.puck.pos.y = self.pos.y + 5
 
     def accelerate(self, x, y):
         # self.velocity.update(x, y)
@@ -97,21 +103,45 @@ class Player(pygame.sprite.Sprite):
 
     def coast(self):
         self.acceleration = -self.velocity * 0.03
+    
+    def gain_posession(self, puck):
+        global posession
+        posession = self
+        self.puck = puck
+
+    def lose_posession(self, puck):
+        global posession
+        posession = None
+        self.puck = None
 
 class Puck(pygame.sprite.Sprite):
-    def __init__(self, width, height):
-       pygame.sprite.Sprite.__init__(self)
-       self.velocity = pygame.math.Vector2(0, 0)
-       self.acceleration = pygame.math.Vector2(0, 0)
-       self.pos = pygame.math.Vector2(0, 0)
+    def __init__(self, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        self.velocity = pygame.math.Vector2(0, 0)
+        self.acceleration = pygame.math.Vector2(0, 0)
+        self.pos = pygame.math.Vector2(x, y)
 
-       self.image = pygame.Surface([width * rink_scale, height * rink_scale])
-       self.image.fill(black)
+        self.image = pygame.Surface([PUCK_WIDTH, PUCK_HEIGHT])
+        self.image.fill(black)
 
-       self.rect = self.image.get_rect()
+        self.rect = self.image.get_rect()
+        self.rect.x = self.pos.x
+        self.rect.y = self.pos.y
 
     def handle_collision(self, target):
-        pass
+        global posession
+        if not posession and type(target) is Player:
+            print("Puck collided with player")
+            target.gain_posession(self)
+
+    def update(self):
+        self.velocity = self.velocity + self.acceleration
+        if self.velocity.length() > 0:
+            self.velocity.clamp_magnitude_ip(MAX_PLAYER_VELOCITY)
+        self.pos = self.pos + self.velocity
+        self.rect.x = self.pos.x
+        self.rect.y = self.pos.y
+        
 
 
 def RinkCollide(target):
@@ -165,7 +195,8 @@ all_sprites_list = pygame.sprite.Group()
 player = Player(red, 3, 3)
 left_net = Net(6, (85 - 6) / 2)
 right_net = Net(190, (85 - 6) / 2, True)
-puck = Puck(2, 2)
+puck = Puck(200, 80)
+posession = None
 
 player.rect.x = screen_width / 2
 player.rect.y = screen_height / 2
@@ -207,7 +238,7 @@ def gameLoop():
                 player.coast()
 
         drawRink(dis)
-        all_players_list.update()
+        all_sprites_list.update()
         RinkCollide(player)
         collision_list = pygame.sprite.spritecollide(player, all_sprites_list, False)
         for sprite in collision_list:

@@ -35,7 +35,6 @@ MAX_PLAYER_VELOCITY = 85 / FRAME_RATE
 
 # To do list:
 
-# - Refactor update method of puck and player
 # - Point puck in correct direction while being carried
 # - Add second player
 # - Shoot puck
@@ -76,20 +75,13 @@ def draw_net(rink, horizontal, flip):
     rink.blit(net, (horizontal * rink_scale, (85 - 6) / 2 * rink_scale))
 
 
-class Player(pygame.sprite.Sprite):
-
-    def __init__(self, color, x, y):
+class PhysicsBase(pygame.sprite.Sprite):
+    def __init__(self, x, y):
        pygame.sprite.Sprite.__init__(self)
        self.velocity = pygame.math.Vector2(0, 0)
        self.acceleration = pygame.math.Vector2(0, 0)
        self.pos = pygame.math.Vector2(x, y)
-       self.puck = None
 
-       self.image = pygame.Surface([PLAYER_WIDTH, PLAYER_HEIGHT])
-       self.image.fill(color)
-
-       self.rect = self.image.get_rect()
-       
     def update(self):
         self.velocity = self.velocity + self.acceleration
         if self.velocity.length() > 0:
@@ -97,13 +89,24 @@ class Player(pygame.sprite.Sprite):
         self.pos = self.pos + self.velocity
         self.rect.x = self.pos.x
         self.rect.y = self.pos.y
+
+
+class Player(PhysicsBase):
+
+    def __init__(self, color, x, y):
+       PhysicsBase.__init__(self, x, y)
+       self.puck = None
+       self.image = pygame.Surface([PLAYER_WIDTH, PLAYER_HEIGHT])
+       self.image.fill(color)
+       self.rect = self.image.get_rect()
+       
+    def update(self):
+        PhysicsBase.update(self)
         if self.puck != None:
             self.puck.pos.x = self.pos.x + 5
             self.puck.pos.y = self.pos.y + 5
 
     def accelerate(self, x, y):
-        # self.velocity.update(x, y)
-        # print(self.rect)
         self.acceleration.update(x/5, y/5)
 
     def coast(self):
@@ -119,35 +122,18 @@ class Player(pygame.sprite.Sprite):
         posession = None
         self.puck = None
 
-class Puck(pygame.sprite.Sprite):
+class Puck(PhysicsBase):
     def __init__(self, x, y):
-        pygame.sprite.Sprite.__init__(self)
-        self.velocity = pygame.math.Vector2(0, 0)
-        self.acceleration = pygame.math.Vector2(0, 0)
-        self.pos = pygame.math.Vector2(x, y)
-
+        PhysicsBase.__init__(self, x, y)
         self.image = pygame.Surface([PUCK_WIDTH, PUCK_HEIGHT])
         self.image.fill(black)
-
         self.rect = self.image.get_rect()
-        self.rect.x = self.pos.x
-        self.rect.y = self.pos.y
 
     def handle_collision(self, target):
         global posession
         if not posession and type(target) is Player:
             print("Puck collided with player")
             target.gain_posession(self)
-
-    def update(self):
-        self.velocity = self.velocity + self.acceleration
-        if self.velocity.length() > 0:
-            self.velocity.clamp_magnitude_ip(MAX_PLAYER_VELOCITY)
-        self.pos = self.pos + self.velocity
-        self.rect.x = self.pos.x
-        self.rect.y = self.pos.y
-        
-
 
 def RinkCollide(target):
     if target.pos.y + target.rect.height > screen_height:

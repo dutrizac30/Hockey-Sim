@@ -21,6 +21,9 @@ NET_HEIGHT = 6 * rink_scale
 PUCK_WIDTH = 2 * rink_scale
 PUCK_HEIGHT = 2 * rink_scale
 
+PLAYER_WIDTH = 3 * rink_scale
+PLAYER_HEIGHT = 3 * rink_scale
+
 dis = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption('Hockey Sim')
  
@@ -31,7 +34,9 @@ FRAME_RATE = 30
 MAX_PLAYER_VELOCITY = 85 / FRAME_RATE
 
 # To do list:
-# - Collision/carry puck
+
+# - Refactor update method of puck and player
+# - Point puck in correct direction while being carried
 # - Add second player
 # - Shoot puck
 # - Pass puck
@@ -73,14 +78,14 @@ def draw_net(rink, horizontal, flip):
 
 class Player(pygame.sprite.Sprite):
 
-    def __init__(self, color, width, height):
+    def __init__(self, color, x, y):
        pygame.sprite.Sprite.__init__(self)
        self.velocity = pygame.math.Vector2(0, 0)
        self.acceleration = pygame.math.Vector2(0, 0)
-       self.pos = pygame.math.Vector2(0, 0)
+       self.pos = pygame.math.Vector2(x, y)
        self.puck = None
 
-       self.image = pygame.Surface([width * rink_scale, height * rink_scale])
+       self.image = pygame.Surface([PLAYER_WIDTH, PLAYER_HEIGHT])
        self.image.fill(color)
 
        self.rect = self.image.get_rect()
@@ -192,7 +197,7 @@ def drawRink(display):
 all_players_list = pygame.sprite.Group()
 all_sprites_list = pygame.sprite.Group()
 
-player = Player(red, 3, 3)
+player = Player(red, 150, 60)
 left_net = Net(6, (85 - 6) / 2)
 right_net = Net(190, (85 - 6) / 2, True)
 puck = Puck(200, 80)

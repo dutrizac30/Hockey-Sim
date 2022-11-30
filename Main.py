@@ -36,7 +36,6 @@ MAX_PLAYER_VELOCITY = 85 / FRAME_RATE
 # To do list:
 
 # - Create max puck velocity
-# - Point puck in correct direction while being carried
 # - Add second player
 # - Shoot puck
 # - Pass puck
@@ -100,12 +99,12 @@ class Player(PhysicsBase):
        self.image.fill(color)
        self.rect = self.image.get_rect()
 
-    def am_i_carrying_the_puck(self):
+    def have_posession(self):
         return self.puck != None
        
     def update(self):
         PhysicsBase.update(self)
-        if self.am_i_carrying_the_puck():
+        if self.have_posession():
             direction = self.velocity.copy()
             if direction.length() > 0:
                 direction.normalize_ip()
@@ -127,6 +126,14 @@ class Player(PhysicsBase):
         global posession
         posession = None
         self.puck = None
+
+    def shoot(self):
+        print("shoot")
+        if self.have_posession():
+            puck = self.puck
+            self.lose_posession()
+            self.puck.velocity = self.velocity.copy()
+
 
 class Puck(PhysicsBase):
     def __init__(self, x, y):
@@ -214,6 +221,9 @@ def gameLoop():
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_LEFT:
+                player.shoot()
+                print("shot")
+            if event.key == pygame.K_LEFT:
                 player.accelerate(-MAX_PLAYER_VELOCITY, 0)
             if event.key == pygame.K_RIGHT:
                 player.accelerate(MAX_PLAYER_VELOCITY, 0)
@@ -221,8 +231,8 @@ def gameLoop():
                 player.accelerate(0, -MAX_PLAYER_VELOCITY)
             if event.key == pygame.K_DOWN:
                 player.accelerate(0, MAX_PLAYER_VELOCITY)
-            if event.key == pygame.K_SPACE:
-                print("Shoot!")
+                print("test")
+            
 
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_LEFT:

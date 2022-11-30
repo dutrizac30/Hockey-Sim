@@ -35,6 +35,7 @@ MAX_PLAYER_VELOCITY = 85 / FRAME_RATE
 
 # To do list:
 
+# - Create max puck velocity
 # - Point puck in correct direction while being carried
 # - Add second player
 # - Shoot puck
@@ -61,7 +62,6 @@ class Net(pygame.sprite.Sprite):
             self.image = pygame.transform.flip(self.image, True, False)
         
     def handle_collision(self, target):
-        print(time.time())
         target.pos = target.pos - target.velocity
         target.velocity = -target.velocity
         
@@ -99,12 +99,18 @@ class Player(PhysicsBase):
        self.image = pygame.Surface([PLAYER_WIDTH, PLAYER_HEIGHT])
        self.image.fill(color)
        self.rect = self.image.get_rect()
+
+    def am_i_carrying_the_puck(self):
+        return self.puck != None
        
     def update(self):
         PhysicsBase.update(self)
-        if self.puck != None:
-            self.puck.pos.x = self.pos.x + 5
-            self.puck.pos.y = self.pos.y + 5
+        if self.am_i_carrying_the_puck():
+            direction = self.velocity.copy()
+            if direction.length() > 0:
+                direction.normalize_ip()
+            self.puck.pos.x = self.pos.x + PLAYER_WIDTH / 2 - PUCK_WIDTH / 2 + direction.x * 10
+            self.puck.pos.y = self.pos.y + PLAYER_HEIGHT / 2 - PUCK_HEIGHT / 2 + direction.y * 10
 
     def accelerate(self, x, y):
         self.acceleration.update(x/5, y/5)

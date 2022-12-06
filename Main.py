@@ -219,30 +219,30 @@ def gameLoop():
             if event.type == pygame.QUIT:
                 game_over = True
 
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_LEFT:
-                player.shoot()
-                print("shot")
-            if event.key == pygame.K_LEFT:
-                player.accelerate(-MAX_PLAYER_VELOCITY, 0)
-            if event.key == pygame.K_RIGHT:
-                player.accelerate(MAX_PLAYER_VELOCITY, 0)
-            if event.key == pygame.K_UP:
-                player.accelerate(0, -MAX_PLAYER_VELOCITY)
-            if event.key == pygame.K_DOWN:
-                player.accelerate(0, MAX_PLAYER_VELOCITY)
-                print("test")
-            
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    player.shoot()
+                    print("shot")
+                if event.key == pygame.K_LEFT:
+                    player.accelerate(-MAX_PLAYER_VELOCITY, 0)
+                if event.key == pygame.K_RIGHT:
+                    player.accelerate(MAX_PLAYER_VELOCITY, 0)
+                if event.key == pygame.K_UP:
+                    player.accelerate(0, -MAX_PLAYER_VELOCITY)
+                if event.key == pygame.K_DOWN:
+                    player.accelerate(0, MAX_PLAYER_VELOCITY)
+                    print("test")
+                
 
-        if event.type == pygame.KEYUP:
-            if event.key == pygame.K_LEFT:
-                player.coast()
-            if event.key == pygame.K_RIGHT:
-                player.coast()
-            if event.key == pygame.K_UP:
-                player.coast()
-            if event.key == pygame.K_DOWN:
-                player.coast()
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_LEFT:
+                    player.coast()
+                if event.key == pygame.K_RIGHT:
+                    player.coast()
+                if event.key == pygame.K_UP:
+                    player.coast()
+                if event.key == pygame.K_DOWN:
+                    player.coast()
 
         drawRink(dis)
         all_sprites_list.update()

@@ -33,11 +33,15 @@ FRAME_RATE = 30
 
 MAX_PLAYER_VELOCITY = 85 / FRAME_RATE
 
+MAX_PUCK_VELOCITY = MAX_PLAYER_VELOCITY * 5
+
+FRICTION = 0.01
+
+SHOT_VELOCITY = 20
+
 # To do list:
 
-# - Create max puck velocity
 # - Add second player
-# - Shoot puck
 # - Pass puck
 # - Detect puck in the net
 # - Keep score
@@ -82,12 +86,15 @@ class PhysicsBase(pygame.sprite.Sprite):
        self.pos = pygame.math.Vector2(x, y)
 
     def update(self):
-        self.velocity = self.velocity + self.acceleration
+        self.velocity = self.velocity + self.acceleration - self.velocity * FRICTION
         if self.velocity.length() > 0:
-            self.velocity.clamp_magnitude_ip(MAX_PLAYER_VELOCITY)
+            self.velocity.clamp_magnitude_ip(self.getMaxVelocity())
         self.pos = self.pos + self.velocity
         self.rect.x = self.pos.x
         self.rect.y = self.pos.y
+    
+    def getMaxVelocity(self):
+        raise ValueError("NotImplemented")
 
 
 class Player(PhysicsBase):
@@ -108,21 +115,21 @@ class Player(PhysicsBase):
             direction = self.velocity.copy()
             if direction.length() > 0:
                 direction.normalize_ip()
-            self.puck.pos.x = self.pos.x + PLAYER_WIDTH / 2 - PUCK_WIDTH / 2 + direction.x * 10
-            self.puck.pos.y = self.pos.y + PLAYER_HEIGHT / 2 - PUCK_HEIGHT / 2 + direction.y * 10
+            self.puck.pos.x = self.pos.x + PLAYER_WIDTH / 2 - PUCK_WIDTH / 2 + direction.x * 20
+            self.puck.pos.y = self.pos.y + PLAYER_HEIGHT / 2 - PUCK_HEIGHT / 2 + direction.y * 20
 
     def accelerate(self, x, y):
         self.acceleration.update(x/5, y/5)
 
     def coast(self):
-        self.acceleration = -self.velocity * 0.03
+        self.acceleration.update(0, 0)
     
     def gain_posession(self, puck):
         global posession
         posession = self
         self.puck = puck
 
-    def lose_posession(self, puck):
+    def lose_posession(self):
         global posession
         posession = None
         self.puck = None
@@ -132,7 +139,10 @@ class Player(PhysicsBase):
         if self.have_posession():
             puck = self.puck
             self.lose_posession()
-            self.puck.velocity = self.velocity.copy()
+            puck.velocity = self.velocity + self.velocity.normalize() * SHOT_VELOCITY
+
+    def getMaxVelocity(self):
+        return MAX_PLAYER_VELOCITY
 
 
 class Puck(PhysicsBase):
@@ -147,6 +157,9 @@ class Puck(PhysicsBase):
         if not posession and type(target) is Player:
             print("Puck collided with player")
             target.gain_posession(self)
+
+    def getMaxVelocity(self):
+        return MAX_PUCK_VELOCITY
 
 def RinkCollide(target):
     if target.pos.y + target.rect.height > screen_height:
@@ -247,6 +260,7 @@ def gameLoop():
         drawRink(dis)
         all_sprites_list.update()
         RinkCollide(player)
+        RinkCollide(puck)
         collision_list = pygame.sprite.spritecollide(player, all_sprites_list, False)
         for sprite in collision_list:
             if sprite != player:

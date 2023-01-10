@@ -41,10 +41,10 @@ SHOT_VELOCITY = 20
 
 # To do list:
 
+# - Detect puck in net
+# - Keep score
 # - Add second player
 # - Pass puck
-# - Detect puck in the net
-# - Keep score
 # - Player collision
 # - Fall down when hitting boards too fast/ gettting hit with puck
 # - Add goalie
@@ -68,16 +68,6 @@ class Net(pygame.sprite.Sprite):
         target.pos = target.pos - target.velocity
         target.velocity = -target.velocity
         
-def draw_net(rink, horizontal, flip):
-    size = width, height = ( 4 * rink_scale, 6 * rink_scale)
-    net = pygame.Surface(size, pygame.SRCALPHA, 32) 
-    net = net.convert_alpha()
-    pygame.draw.rect(net, red, [0, 0, 4 * rink_scale, 6 * rink_scale], border_top_left_radius= 1 * rink_scale, border_bottom_left_radius= 1 * rink_scale,)
-    if flip:
-        net = pygame.transform.flip(net, True, False)
-    rink.blit(net, (horizontal * rink_scale, (85 - 6) / 2 * rink_scale))
-
-
 class PhysicsBase(pygame.sprite.Sprite):
     def __init__(self, x, y):
        pygame.sprite.Sprite.__init__(self)
@@ -155,7 +145,6 @@ class Puck(PhysicsBase):
     def handle_collision(self, target):
         global posession
         if not posession and type(target) is Player:
-            print("Puck collided with player")
             target.gain_posession(self)
 
     def getMaxVelocity(self):
@@ -163,19 +152,15 @@ class Puck(PhysicsBase):
 
 def RinkCollide(target):
     if target.pos.y + target.rect.height > screen_height:
-        print("collided with bottom")
         target.pos.y = (screen_height - target.rect.height) - (target.pos.y - (screen_height - target.rect.height))
         target.velocity.y = -target.velocity.y
     elif target.pos.y < 0:
-        print("collided with top")
         target.pos.y = -target.pos.y
         target.velocity.y = -target.velocity.y
     if target.pos.x + target.rect.width > screen_width:
-        print("collided with right")
         target.pos.x = (screen_width - target.rect.width) - (target.pos.x - (screen_width - target.rect.width))
         target.velocity.x = -target.velocity.x
     elif target.pos.x < 0:
-        print("collided with left")
         target.pos.x = -target.pos.x
         target.velocity.x = -target.velocity.x
     
@@ -244,7 +229,6 @@ def gameLoop():
                     player.accelerate(0, -MAX_PLAYER_VELOCITY)
                 if event.key == pygame.K_DOWN:
                     player.accelerate(0, MAX_PLAYER_VELOCITY)
-                    print("test")
                 
 
             if event.type == pygame.KEYUP:

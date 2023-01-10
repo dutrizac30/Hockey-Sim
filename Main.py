@@ -96,6 +96,9 @@ class Player(PhysicsBase):
        self.image.fill(color)
        self.rect = self.image.get_rect()
 
+    def handle_collision(self, target):
+        pass
+
     def have_posession(self):
         return self.puck != None
        
@@ -190,24 +193,28 @@ def drawRink(display):
     draw_rink_line(rink, 190, thin_line_width, red)
     display.blit(rink, (0, 0))
 
+def addMovingSprite(sprite):
+    moving_sprites_list.add(sprite)
+    all_sprites_list.add(sprite)
 
-all_players_list = pygame.sprite.Group()
+def addFixedSprite(sprite):
+    all_sprites_list.add(sprite)
+
+
+moving_sprites_list = pygame.sprite.Group()
 all_sprites_list = pygame.sprite.Group()
 
 player = Player(red, 150, 60)
-left_net = Net(6, (85 - 6) / 2)
-right_net = Net(190, (85 - 6) / 2, True)
 puck = Puck(200, 80)
+addMovingSprite(player)
+addMovingSprite(puck)
+addMovingSprite(Player(blue, 60, 70))
+addFixedSprite(Net(6, (85 - 6) / 2))
+addFixedSprite(Net(190, (85 - 6) / 2, True))
 posession = None
 
-player.rect.x = screen_width / 2
-player.rect.y = screen_height / 2
-
-all_players_list.add(player)
-all_sprites_list.add(left_net)
-all_sprites_list.add(right_net)
-all_sprites_list.add(player)
-all_sprites_list.add(puck)
+# player.rect.x = screen_width / 2
+# player.rect.y = screen_height / 2
 
 def gameLoop():
     game_over = False
@@ -245,10 +252,12 @@ def gameLoop():
         all_sprites_list.update()
         RinkCollide(player)
         RinkCollide(puck)
-        collision_list = pygame.sprite.spritecollide(player, all_sprites_list, False)
-        for sprite in collision_list:
-            if sprite != player:
-                sprite.handle_collision(player)
+        collisions_map = pygame.sprite.groupcollide(all_sprites_list, moving_sprites_list, False, False)
+        for sprite in collisions_map.keys():
+            collisions = collisions_map[sprite]
+            for collided in collisions:
+                if sprite != collided:
+                    sprite.handle_collision(collided)
         all_sprites_list.draw(dis)
         pygame.display.update()
         clock.tick(FRAME_RATE)

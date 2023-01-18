@@ -2,6 +2,7 @@ from pickle import FRAME
 import pygame
 import time
 import random
+import math
  
 pygame.init()
  
@@ -39,8 +40,11 @@ FRICTION = 0.01
 
 SHOT_VELOCITY = 20
 
+ELASTICITY = 1
+
 # To do list:
 
+# - Make the boards a sprite
 # - Stop second player from eating puck
 # - Detect puck in net
 # - Add second player controls
@@ -96,9 +100,30 @@ class Player(PhysicsBase):
        self.image = pygame.Surface([PLAYER_WIDTH, PLAYER_HEIGHT])
        self.image.fill(color)
        self.rect = self.image.get_rect()
+       self.skipCollision = False
 
     def handle_collision(self, target):
-        pass
+        if self.skipCollision:
+            self.skipCollision = False
+            return
+        if type(target) is Player:
+            target.skipCollision = True
+            dx = self.pos.x - target.pos.x
+            dy = self.pos.y - target.pos.y
+            self_angle = math.atan2(self.velocity.y, self.velocity.x)
+            target_angle = math.atan2(target.velocity.y, target.velocity.x)
+            self_speed = self.velocity.length()
+            target_speed = target.velocity.length()
+            tangent = math.atan2(dy, dx)
+            self_angle = 2 * tangent - self_angle
+            target_angle = 2 * tangent - target_angle
+            (self_speed, target_speed) = (target_speed, self_speed)
+            self_speed *= ELASTICITY
+            target_speed *= ELASTICITY
+            self.velocity.x = self_speed * math.cos(self_angle)
+            self.velocity.y = self_speed * math.sin(self_angle)
+            target.velocity.x = target_speed * math.cos(target_angle)
+            target.velocity.y = target_speed * math.sin(target_angle)  
 
     def have_posession(self):
         return self.puck != None
@@ -205,10 +230,11 @@ moving_sprites_list = pygame.sprite.Group()
 all_sprites_list = pygame.sprite.Group()
 
 player = Player(red, 150, 60)
+player2 = Player(blue, 60, 70)
 puck = Puck(200, 80)
 addMovingSprite(player)
 addMovingSprite(puck)
-addMovingSprite(Player(blue, 60, 70))
+addMovingSprite(player2)
 addFixedSprite(Net(6, (85 - 6) / 2))
 addFixedSprite(Net(190, (85 - 6) / 2, True))
 posession = None
@@ -248,6 +274,7 @@ def gameLoop():
         drawRink(dis)
         all_sprites_list.update()
         RinkCollide(player)
+        RinkCollide(player2)
         RinkCollide(puck)
         collisions_map = pygame.sprite.groupcollide(all_sprites_list, moving_sprites_list, False, False)
         for sprite in collisions_map.keys():

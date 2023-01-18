@@ -41,13 +41,14 @@ SHOT_VELOCITY = 20
 
 # To do list:
 
+# - Stop second player from eating puck
 # - Detect puck in net
-# - Keep score
-# - Add second player
+# - Add second player controls
 # - Pass puck
 # - Player collision
 # - Fall down when hitting boards too fast/ gettting hit with puck
 # - Add goalie
+# - Keep score
 # - Fill all positions on ice
 # - Create the AI
 # - Add icing/offside
@@ -128,7 +129,6 @@ class Player(PhysicsBase):
         self.puck = None
 
     def shoot(self):
-        print("shoot")
         if self.have_posession():
             puck = self.puck
             self.lose_posession()
@@ -212,9 +212,6 @@ addMovingSprite(Player(blue, 60, 70))
 addFixedSprite(Net(6, (85 - 6) / 2))
 addFixedSprite(Net(190, (85 - 6) / 2, True))
 posession = None
-
-# player.rect.x = screen_width / 2
-# player.rect.y = screen_height / 2
 
 def gameLoop():
     game_over = False

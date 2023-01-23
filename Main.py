@@ -6,30 +6,6 @@ import math
  
 pygame.init()
  
-white = (255, 255, 255)
-black = (0, 0, 0)
-red = (213, 50, 80)
-blue = (50, 153, 213)
-
-rink_scale = 5
- 
-screen_width = 200 * rink_scale
-screen_height = 85 * rink_scale
-
-NET_WIDTH = 4 * rink_scale
-NET_HEIGHT = 6 * rink_scale
-
-PUCK_WIDTH = 2 * rink_scale
-PUCK_HEIGHT = 2 * rink_scale
-
-PLAYER_WIDTH = 3 * rink_scale
-PLAYER_HEIGHT = 3 * rink_scale
-
-dis = pygame.display.set_mode((screen_width, screen_height))
-pygame.display.set_caption('Hockey Sim')
- 
-clock = pygame.time.Clock()
-
 FRAME_RATE = 30
 
 MAX_PLAYER_VELOCITY = 85 / FRAME_RATE
@@ -41,6 +17,30 @@ FRICTION = 0.01
 SHOT_VELOCITY = 20
 
 ELASTICITY = 1
+
+RINK_SCALE = 5
+ 
+SCREEN_WIDTH = 200 * RINK_SCALE
+SCREEN_HEIGHT = 85 * RINK_SCALE
+
+NET_WIDTH = 4 * RINK_SCALE
+NET_HEIGHT = 6 * RINK_SCALE
+
+PUCK_WIDTH = 2 * RINK_SCALE
+PUCK_HEIGHT = 2 * RINK_SCALE
+
+PLAYER_WIDTH = 3 * RINK_SCALE
+PLAYER_HEIGHT = 3 * RINK_SCALE
+
+white = (255, 255, 255)
+black = (0, 0, 0)
+red = (213, 50, 80)
+blue = (50, 153, 213)
+
+dis = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+pygame.display.set_caption('Hockey Sim')
+ 
+clock = pygame.time.Clock()
 
 # To do list:
 
@@ -63,9 +63,9 @@ class Net(pygame.sprite.Sprite):
         self.image = pygame.Surface([NET_WIDTH, NET_HEIGHT], pygame.SRCALPHA, 32)
         self.image = self.image.convert_alpha()
         self.rect = self.image.get_rect()
-        self.rect.x = x * rink_scale
-        self.rect.y = y * rink_scale
-        pygame.draw.rect(self.image, red, [0, 0, self.rect.width, self.rect.height], border_top_left_radius= 1 * rink_scale, border_bottom_left_radius= 1 * rink_scale,)
+        self.rect.x = x * RINK_SCALE
+        self.rect.y = y * RINK_SCALE
+        pygame.draw.rect(self.image, red, [0, 0, self.rect.width, self.rect.height], border_top_left_radius= 1 * RINK_SCALE, border_bottom_left_radius= 1 * RINK_SCALE,)
         if flip:
             self.image = pygame.transform.flip(self.image, True, False)
         
@@ -179,14 +179,14 @@ class Puck(PhysicsBase):
         return MAX_PUCK_VELOCITY
 
 def RinkCollide(target):
-    if target.pos.y + target.rect.height > screen_height:
-        target.pos.y = (screen_height - target.rect.height) - (target.pos.y - (screen_height - target.rect.height))
+    if target.pos.y + target.rect.height > SCREEN_HEIGHT:
+        target.pos.y = (SCREEN_HEIGHT - target.rect.height) - (target.pos.y - (SCREEN_HEIGHT - target.rect.height))
         target.velocity.y = -target.velocity.y
     elif target.pos.y < 0:
         target.pos.y = -target.pos.y
         target.velocity.y = -target.velocity.y
-    if target.pos.x + target.rect.width > screen_width:
-        target.pos.x = (screen_width - target.rect.width) - (target.pos.x - (screen_width - target.rect.width))
+    if target.pos.x + target.rect.width > SCREEN_WIDTH:
+        target.pos.x = (SCREEN_WIDTH - target.rect.width) - (target.pos.x - (SCREEN_WIDTH - target.rect.width))
         target.velocity.x = -target.velocity.x
     elif target.pos.x < 0:
         target.pos.x = -target.pos.x
@@ -194,18 +194,18 @@ def RinkCollide(target):
     
 
 def draw_rink_line(rink, horizontal, width, colour):
-    pygame.draw.rect(rink, colour, [(horizontal * rink_scale) - width * rink_scale / 2, 0, width * rink_scale, 85 * rink_scale])
+    pygame.draw.rect(rink, colour, [(horizontal * RINK_SCALE) - width * RINK_SCALE / 2, 0, width * RINK_SCALE, 85 * RINK_SCALE])
 
 def drawRink(display):
-    size = width, height = (200 * rink_scale, 85 * rink_scale)
+    size = width, height = (200 * RINK_SCALE, 85 * RINK_SCALE)
     rink = pygame.Surface(size)
     rink.fill(white)
     big_line_width = 2
     thin_line_width = 0.5
     #Left Crease
-    pygame.draw.circle(rink, blue, [10 * rink_scale, 85 * rink_scale / 2], 6 * rink_scale, draw_top_right = True, draw_bottom_right= True)
+    pygame.draw.circle(rink, blue, [10 * RINK_SCALE, 85 * RINK_SCALE / 2], 6 * RINK_SCALE, draw_top_right = True, draw_bottom_right= True)
     #Right Crease
-    pygame.draw.circle(rink, blue, [190 * rink_scale, 85 * rink_scale / 2], 6 * rink_scale, draw_top_left = True, draw_bottom_left= True)
+    pygame.draw.circle(rink, blue, [190 * RINK_SCALE, 85 * RINK_SCALE / 2], 6 * RINK_SCALE, draw_top_left = True, draw_bottom_left= True)
     #Center line
     draw_rink_line(rink, 100, big_line_width, red)
     #Left Blueline

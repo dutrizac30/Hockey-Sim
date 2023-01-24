@@ -16,6 +16,8 @@ FRICTION = 0.01
 
 SHOT_VELOCITY = 20
 
+PASS_VELOCITY = 5
+
 ELASTICITY = 1
 
 RINK_SCALE = 5
@@ -45,11 +47,8 @@ clock = pygame.time.Clock()
 # To do list:
 
 # - Make the boards a sprite
-# - Stop second player from eating puck
 # - Detect puck in net
 # - Add second player controls
-# - Pass puck
-# - Player collision
 # - Fall down when hitting boards too fast/ gettting hit with puck
 # - Add goalie
 # - Keep score
@@ -80,27 +79,28 @@ class PhysicsBase(pygame.sprite.Sprite):
        self.acceleration = pygame.math.Vector2(0, 0)
        self.pos = pygame.math.Vector2(x, y)
 
-    def update(self):
+    def update(self, game_state):
         self.velocity = self.velocity + self.acceleration - self.velocity * FRICTION
         if self.velocity.length() > 0:
-            self.velocity.clamp_magnitude_ip(self.getMaxVelocity())
+            self.velocity.clamp_magnitude_ip(self.get_max_velocity())
         self.pos = self.pos + self.velocity
         self.rect.x = self.pos.x
         self.rect.y = self.pos.y
     
-    def getMaxVelocity(self):
+    def get_max_velocity(self):
         raise ValueError("NotImplemented")
 
 
 class Player(PhysicsBase):
 
-    def __init__(self, color, x, y):
+    def __init__(self, color, x, y, controller):
        PhysicsBase.__init__(self, x, y)
        self.puck = None
        self.image = pygame.Surface([PLAYER_WIDTH, PLAYER_HEIGHT])
        self.image.fill(color)
        self.rect = self.image.get_rect()
        self.skipCollision = False
+       self.controller = controller
 
     def handle_collision(self, target):
         if self.skipCollision:
@@ -128,8 +128,9 @@ class Player(PhysicsBase):
     def have_posession(self):
         return self.puck != None
        
-    def update(self):
-        PhysicsBase.update(self)
+    def update(self, game_state):
+        self.controller.update_controller(self, game_state)
+        PhysicsBase.update(self, game_state)
         if self.have_posession():
             direction = self.velocity.copy()
             if direction.length() > 0:
@@ -159,9 +160,28 @@ class Player(PhysicsBase):
             self.lose_posession()
             puck.velocity = self.velocity + self.velocity.normalize() * SHOT_VELOCITY
 
-    def getMaxVelocity(self):
+    def pass_puck(self):
+        if self.have_posession():
+            puck = self.puck
+            self.lose_posession()
+            puck.velocity = self.velocity + self.velocity.normalize() * PASS_VELOCITY
+
+    def get_max_velocity(self):
         return MAX_PLAYER_VELOCITY
 
+class Controller:
+    def update_controller(self, player, game_state):
+        pass
+
+class Manual_Controller(Controller):
+    def update_controller(self, player, game_state):
+        pass
+
+class Chaser_Controller(Controller):
+    def update_controller(self, player, game_state):
+        puck = game_state["puck"]
+        player.velocity = puck.pos - player.pos
+        player.velocity.normalize
 
 class Puck(PhysicsBase):
     def __init__(self, x, y):
@@ -175,7 +195,7 @@ class Puck(PhysicsBase):
         if not posession and type(target) is Player:
             target.gain_posession(self)
 
-    def getMaxVelocity(self):
+    def get_max_velocity(self):
         return MAX_PUCK_VELOCITY
 
 def RinkCollide(target):
@@ -229,8 +249,8 @@ def addFixedSprite(sprite):
 moving_sprites_list = pygame.sprite.Group()
 all_sprites_list = pygame.sprite.Group()
 
-player = Player(red, 150, 60)
-player2 = Player(blue, 60, 70)
+player = Player(red, 150, 60, Manual_Controller())
+player2 = Player(blue, 60, 70, Chaser_Controller())
 puck = Puck(200, 80)
 addMovingSprite(player)
 addMovingSprite(puck)
@@ -238,6 +258,10 @@ addMovingSprite(player2)
 addFixedSprite(Net(6, (85 - 6) / 2))
 addFixedSprite(Net(190, (85 - 6) / 2, True))
 posession = None
+
+game_state = {
+    "puck": puck
+}
 
 def gameLoop():
     game_over = False
@@ -250,7 +274,6 @@ def gameLoop():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     player.shoot()
-                    print("shot")
                 if event.key == pygame.K_LEFT:
                     player.accelerate(-MAX_PLAYER_VELOCITY, 0)
                 if event.key == pygame.K_RIGHT:
@@ -259,6 +282,8 @@ def gameLoop():
                     player.accelerate(0, -MAX_PLAYER_VELOCITY)
                 if event.key == pygame.K_DOWN:
                     player.accelerate(0, MAX_PLAYER_VELOCITY)
+                if event.key == pygame.K_p:
+                    player.pass_puck()
                 
 
             if event.type == pygame.KEYUP:
@@ -272,7 +297,7 @@ def gameLoop():
                     player.coast()
 
         drawRink(dis)
-        all_sprites_list.update()
+        all_sprites_list.update(game_state)
         RinkCollide(player)
         RinkCollide(player2)
         RinkCollide(puck)

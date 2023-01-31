@@ -90,6 +90,10 @@ class PhysicsBase(pygame.sprite.Sprite):
     def get_max_velocity(self):
         raise ValueError("NotImplemented")
 
+    def get_direction(self):
+        return math.atan2(self.velocity.y, self.velocity.x)
+
+
 
 class Player(PhysicsBase):
 
@@ -154,17 +158,12 @@ class Player(PhysicsBase):
         posession = None
         self.puck = None
 
-    def shoot(self):
+    def shoot(self, direction, speed):
         if self.have_posession():
             puck = self.puck
             self.lose_posession()
-            puck.velocity = self.velocity + self.velocity.normalize() * SHOT_VELOCITY
-
-    def pass_puck(self):
-        if self.have_posession():
-            puck = self.puck
-            self.lose_posession()
-            puck.velocity = self.velocity + self.velocity.normalize() * PASS_VELOCITY
+            puck.velocity.x = math.cos(direction) * speed
+            puck.velocity.y = math.sin(direction) * speed
 
     def get_max_velocity(self):
         return MAX_PLAYER_VELOCITY
@@ -175,35 +174,16 @@ class Controller:
 
 class Manual_Controller(Controller):
     def update_controller(self, player, game_state, event):
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_SPACE:
-                player.shoot()
-            if event.key == pygame.K_LEFT:
-                player.accelerate(-MAX_PLAYER_VELOCITY, 0)
-            if event.key == pygame.K_RIGHT:
-                player.accelerate(MAX_PLAYER_VELOCITY, 0)
-            if event.key == pygame.K_UP:
-                player.accelerate(0, -MAX_PLAYER_VELOCITY)
-            if event.key == pygame.K_DOWN:
-                player.accelerate(0, MAX_PLAYER_VELOCITY)
-            if event.key == pygame.K_p:
-                player.pass_puck()
-
-        if event.type == pygame.KEYUP:
-            if event.key == pygame.K_LEFT:
-                player.coast()
-            if event.key == pygame.K_RIGHT:
-                player.coast()
-            if event.key == pygame.K_UP:
-                player.coast()
-            if event.key == pygame.K_DOWN:
-                player.coast()
+        pass
 
 class Chaser_Controller(Controller):
     def update_controller(self, player, game_state, event):
         puck = game_state["puck"]
-        player.velocity = puck.pos - player.pos
-        player.velocity.normalize
+        player.acceleration = puck.pos - player.pos
+        player.acceleration.scale_to_length(.1)
+        if player.have_posession():
+            player.shoot(random.uniform(0.0, 2 * math.pi), random.uniform(0.0, SHOT_VELOCITY))
+
 
 class Puck(PhysicsBase):
     def __init__(self, x, y):
@@ -292,6 +272,29 @@ def gameLoop():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 game_over = True
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    player.shoot(player.get_direction(), SHOT_VELOCITY)
+                if event.key == pygame.K_LEFT:
+                    player.accelerate(-MAX_PLAYER_VELOCITY, 0)
+                if event.key == pygame.K_RIGHT:
+                    player.accelerate(MAX_PLAYER_VELOCITY, 0)
+                if event.key == pygame.K_UP:
+                    player.accelerate(0, -MAX_PLAYER_VELOCITY)
+                if event.key == pygame.K_DOWN:
+                    player.accelerate(0, MAX_PLAYER_VELOCITY)
+                if event.key == pygame.K_p:
+                    player.shoot(player.get_direction(), PASS_VELOCITY)
+
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_LEFT:
+                    player.coast()
+                if event.key == pygame.K_RIGHT:
+                    player.coast()
+                if event.key == pygame.K_UP:
+                    player.coast()
+                if event.key == pygame.K_DOWN:
+                    player.coast()
 
 
         drawRink(dis)

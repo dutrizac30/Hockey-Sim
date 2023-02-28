@@ -21,9 +21,14 @@ PASS_VELOCITY = 5
 ELASTICITY = 1
 
 RINK_SCALE = 5
+
+BOARD_THICKNESS = 5
  
-SCREEN_WIDTH = 200 * RINK_SCALE
-SCREEN_HEIGHT = 85 * RINK_SCALE
+RINK_WIDTH = 200 * RINK_SCALE
+RINK_HEIGHT = 85 * RINK_SCALE
+
+SCREEN_WIDTH = RINK_WIDTH + 2 * BOARD_THICKNESS
+SCREEN_HEIGHT = RINK_HEIGHT + 2 * BOARD_THICKNESS
 
 NET_WIDTH = 4 * RINK_SCALE
 NET_HEIGHT = 6 * RINK_SCALE
@@ -38,6 +43,7 @@ white = (255, 255, 255)
 black = (0, 0, 0)
 red = (213, 50, 80)
 blue = (50, 153, 213)
+yellow = (250, 176, 4)
 
 dis = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption('Hockey Sim')
@@ -46,9 +52,9 @@ clock = pygame.time.Clock()
 
 # To do list:
 
-# - Make the boards a sprite
+# - Fix position of nets
+# - Stop puck from going through board
 # - Detect puck in net
-# - Add second player controls
 # - Fall down when hitting boards too fast/ gettting hit with puck
 # - Add goalie
 # - Keep score
@@ -200,20 +206,57 @@ class Puck(PhysicsBase):
     def get_max_velocity(self):
         return MAX_PUCK_VELOCITY
 
-def RinkCollide(target):
-    if target.pos.y + target.rect.height > SCREEN_HEIGHT:
-        target.pos.y = (SCREEN_HEIGHT - target.rect.height) - (target.pos.y - (SCREEN_HEIGHT - target.rect.height))
-        target.velocity.y = -target.velocity.y
-    elif target.pos.y < 0:
+class TopBoard(pygame.sprite.Sprite):
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.Surface([RINK_WIDTH, BOARD_THICKNESS])
+        self.image.fill(yellow)
+        self.rect = self.image.get_rect()
+        self.rect.x = BOARD_THICKNESS
+        self.rect.y = 0
+
+    def handle_collision(self, target):
         target.pos.y = -target.pos.y
         target.velocity.y = -target.velocity.y
-    if target.pos.x + target.rect.width > SCREEN_WIDTH:
-        target.pos.x = (SCREEN_WIDTH - target.rect.width) - (target.pos.x - (SCREEN_WIDTH - target.rect.width))
-        target.velocity.x = -target.velocity.x
-    elif target.pos.x < 0:
+
+class BottomBoard(pygame.sprite.Sprite):
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.Surface([RINK_WIDTH, BOARD_THICKNESS])
+        self.image.fill(yellow)
+        self.rect = self.image.get_rect()
+        self.rect.x = BOARD_THICKNESS
+        self.rect.y = RINK_HEIGHT + BOARD_THICKNESS
+
+    def handle_collision(self, target):
+        target.pos.y = (RINK_HEIGHT - target.rect.height) - (target.pos.y - (RINK_HEIGHT - target.rect.height))
+        target.velocity.y = -target.velocity.y
+
+class LeftBoard(pygame.sprite.Sprite):
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.Surface([BOARD_THICKNESS, RINK_HEIGHT])
+        self.image.fill(yellow)
+        self.rect = self.image.get_rect()
+        self.rect.x = 0
+        self.rect.y = BOARD_THICKNESS
+
+    def handle_collision(self, target):
         target.pos.x = -target.pos.x
         target.velocity.x = -target.velocity.x
-    
+
+class RightBoard(pygame.sprite.Sprite):
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.Surface([BOARD_THICKNESS, RINK_HEIGHT])
+        self.image.fill(yellow)
+        self.rect = self.image.get_rect()
+        self.rect.x = RINK_WIDTH + BOARD_THICKNESS
+        self.rect.y = BOARD_THICKNESS
+
+    def handle_collision(self, target):
+        target.pos.x = (RINK_WIDTH - target.rect.width) - (target.pos.x - (RINK_WIDTH - target.rect.width))
+        target.velocity.x = -target.velocity.x
 
 def draw_rink_line(rink, horizontal, width, colour):
     pygame.draw.rect(rink, colour, [(horizontal * RINK_SCALE) - width * RINK_SCALE / 2, 0, width * RINK_SCALE, 85 * RINK_SCALE])
@@ -238,7 +281,7 @@ def drawRink(display):
     draw_rink_line(rink, 10, thin_line_width, red)
     #Right Goalline
     draw_rink_line(rink, 190, thin_line_width, red)
-    display.blit(rink, (0, 0))
+    display.blit(rink, (BOARD_THICKNESS, BOARD_THICKNESS))
 
 def addMovingSprite(sprite):
     moving_sprites_list.add(sprite)
@@ -252,11 +295,10 @@ moving_sprites_list = pygame.sprite.Group()
 all_sprites_list = pygame.sprite.Group()
 
 player = Player(red, 150, 60, Manual_Controller())
-player2 = Player(blue, 60, 70, Chaser_Controller())
 puck = Puck(200, 80)
 addMovingSprite(player)
 addMovingSprite(puck)
-addMovingSprite(player2)
+addMovingSprite(Player(blue, 60, 70, Chaser_Controller()))
 addFixedSprite(Net(6, (85 - 6) / 2))
 addFixedSprite(Net(190, (85 - 6) / 2, True))
 posession = None
@@ -264,6 +306,11 @@ posession = None
 game_state = {
     "puck": puck
 }
+
+addFixedSprite(TopBoard())
+addFixedSprite(BottomBoard())
+addFixedSprite(LeftBoard())
+addFixedSprite(RightBoard())
 
 def gameLoop():
     game_over = False
@@ -299,9 +346,6 @@ def gameLoop():
 
         drawRink(dis)
         all_sprites_list.update(game_state, event)
-        RinkCollide(player)
-        RinkCollide(player2)
-        RinkCollide(puck)
         collisions_map = pygame.sprite.groupcollide(all_sprites_list, moving_sprites_list, False, False)
         for sprite in collisions_map.keys():
             collisions = collisions_map[sprite]

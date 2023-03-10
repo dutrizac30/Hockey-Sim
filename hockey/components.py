@@ -4,9 +4,8 @@ import time
 import random
 import math
 
-from colors import *
-from constants import *
-
+from .colors import *
+from .constants import *
 
 # To do list:
 
@@ -31,11 +30,11 @@ class Net(pygame.sprite.Sprite):
         pygame.draw.rect(self.image, red, [0, 0, self.rect.width, self.rect.height], border_top_left_radius= 1 * RINK_SCALE, border_bottom_left_radius= 1 * RINK_SCALE,)
         if flip:
             self.image = pygame.transform.flip(self.image, True, False)
-        
+
     def handle_collision(self, target):
         target.pos = target.pos - target.velocity
         target.velocity = -target.velocity
-        
+
 class PhysicsBase(pygame.sprite.Sprite):
     def __init__(self, x, y):
        pygame.sprite.Sprite.__init__(self)
@@ -50,14 +49,12 @@ class PhysicsBase(pygame.sprite.Sprite):
         self.pos = self.pos + self.velocity
         self.rect.x = self.pos.x
         self.rect.y = self.pos.y
-    
+
     def get_max_velocity(self):
         raise ValueError("NotImplemented")
 
     def get_direction(self):
         return math.atan2(self.velocity.y, self.velocity.x)
-
-
 
 class Player(PhysicsBase):
 
@@ -91,11 +88,11 @@ class Player(PhysicsBase):
             self.velocity.x = self_speed * math.cos(self_angle)
             self.velocity.y = self_speed * math.sin(self_angle)
             target.velocity.x = target_speed * math.cos(target_angle)
-            target.velocity.y = target_speed * math.sin(target_angle)  
+            target.velocity.y = target_speed * math.sin(target_angle)
 
     def have_posession(self):
         return self.puck != None
-       
+
     def update(self, game_state, event):
         self.controller.update_controller(self, game_state, event)
         PhysicsBase.update(self, game_state, event)
@@ -111,7 +108,7 @@ class Player(PhysicsBase):
 
     def coast(self):
         self.acceleration.update(0, 0)
-    
+
     def gain_posession(self, puck):
         global posession
         posession = self
@@ -153,7 +150,6 @@ class Chaser_Controller(Controller):
         player.acceleration.scale_to_length(.1)
         if player.have_posession():
             player.shoot(random.uniform(0.0, 2 * math.pi), random.uniform(0.0, SHOT_VELOCITY))
-
 
 class Puck(PhysicsBase):
     def __init__(self, x, y):
@@ -246,4 +242,3 @@ def drawRink(display):
     #Right Goalline
     draw_rink_line(rink, 190, thin_line_width, red)
     display.blit(rink, (BOARD_THICKNESS, BOARD_THICKNESS))
- 

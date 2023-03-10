@@ -5,7 +5,7 @@ class HockeyGame():
     def __init__(self, dis):
         self.game = hockey.Game(dis)
         self.player = self.game.player
-    
+
     def run_manual_game(self):
         game_over = False
         pygame.key.set_repeat(0, 0)
@@ -36,17 +36,16 @@ class HockeyGame():
                         self.player.coast()
                     if event.key == pygame.K_DOWN:
                         self.player.coast()
+            self.game.update(event)
+            self.game.draw()
         pygame.quit()
         quit()
 
-
-
 def run_game():
-
     pygame.init()
-
     dis = pygame.display.set_mode((hockey.SCREEN_WIDTH, hockey.SCREEN_HEIGHT))
     pygame.display.set_caption('Hockey Sim')
     game = HockeyGame(dis)
+    game.run_manual_game()
 
 run_game()

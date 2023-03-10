@@ -1,2 +1,2 @@
-from constants import SCREEN_HEIGHT, SCREEN_WIDTH
-from game import Game
+from .constants import SCREEN_HEIGHT, SCREEN_WIDTH
+from .game import Game

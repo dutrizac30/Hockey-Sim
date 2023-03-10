@@ -133,7 +133,7 @@ class Manual_Controller(Controller):
 
 class Chaser_Controller(Controller):
     def update_controller(self, player, game_state, event):
-        puck = game_state["puck"]
+        puck = game_state.puck
         player.acceleration = puck.pos - player.pos
         player.acceleration.scale_to_length(.1)
         if player.have_posession():

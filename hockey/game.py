@@ -2,6 +2,7 @@ import pygame
 import time
 import random
 import math
+import types
 
 from .components import *
 from .colors import *
@@ -30,9 +31,9 @@ class Game:
         self.addFixedSprite(Net(190, (85 - 6) / 2, True))
         self.posession = None
 
-        self.game_state = {
-            "puck": self.puck
-        }
+        self.game_state = types.SimpleNameSpace()
+        self.game_state.puck = self.puck
+        print(self.game_state)
 
         self.addFixedSprite(TopBoard())
         self.addFixedSprite(BottomBoard())

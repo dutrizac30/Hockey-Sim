@@ -1,6 +1,18 @@
 import pygame
 import hockey
 
+# To do list:
+
+# - Fix position of nets
+# - Stop puck from going through board
+# - Detect puck in net
+# - Fall down when hitting boards too fast/ gettting hit with puck
+# - Add goalie
+# - Keep score
+# - Fill all positions on ice
+# - Create the AI
+# - Add icing/offside
+
 class HockeyGame():
     def __init__(self, dis):
         self.game = hockey.Game(dis)

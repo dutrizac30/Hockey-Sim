@@ -7,18 +7,6 @@ import math
 from .colors import *
 from .constants import *
 
-# To do list:
-
-# - Fix position of nets
-# - Stop puck from going through board
-# - Detect puck in net
-# - Fall down when hitting boards too fast/ gettting hit with puck
-# - Add goalie
-# - Keep score
-# - Fill all positions on ice
-# - Create the AI
-# - Add icing/offside
-
 class Net(pygame.sprite.Sprite):
     def __init__(self, x, y, flip = False):
         super().__init__()

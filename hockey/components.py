@@ -1,6 +1,5 @@
 from pickle import FRAME
 import pygame
-import time
 import random
 import math
 
@@ -78,18 +77,18 @@ class Player(PhysicsBase):
             target.velocity.x = target_speed * math.cos(target_angle)
             target.velocity.y = target_speed * math.sin(target_angle)
 
-    def have_posession(self):
-        return self.puck != None
+    def have_posession(self, puck):
+        return puck.posession == self
 
     def update(self, game_state, event):
         self.controller.update_controller(self, game_state, event)
         PhysicsBase.update(self, game_state, event)
-        if self.have_posession():
+        if self.have_posession(game_state.puck):
             direction = self.velocity.copy()
             if direction.length() > 0:
                 direction.normalize_ip()
-            self.puck.pos.x = self.pos.x + PLAYER_WIDTH / 2 - PUCK_WIDTH / 2 + direction.x * 20
-            self.puck.pos.y = self.pos.y + PLAYER_HEIGHT / 2 - PUCK_HEIGHT / 2 + direction.y * 20
+            game_state.puck.pos.x = self.pos.x + PLAYER_WIDTH / 2 - PUCK_WIDTH / 2 + direction.x * 20
+            game_state.puck.pos.y = self.pos.y + PLAYER_HEIGHT / 2 - PUCK_HEIGHT / 2 + direction.y * 20
 
     def accelerate(self, x, y):
         self.acceleration.update(x/5 * MAX_PLAYER_VELOCITY, y/5 * MAX_PLAYER_VELOCITY)
@@ -97,28 +96,17 @@ class Player(PhysicsBase):
     def coast(self):
         self.acceleration.update(0, 0)
 
-    def gain_posession(self, puck):
-        global posession
-        posession = self
-        self.puck = puck
-
-    def lose_posession(self):
-        global posession
-        posession = None
-        self.puck = None
-
-    def _shoot(self, direction, velocity):
-        if self.have_posession():
-            puck = self.puck
-            self.lose_posession()
+    def _shoot(self, puck, direction, velocity):
+        if self.have_posession(puck):
+            puck.posession = None
             puck.velocity.x = math.cos(direction) * velocity
             puck.velocity.y = math.sin(direction) * velocity
 
-    def passing(self, direction):
-        self._shoot(PASS_VELOCITY)
+    def passing(self, puck, direction):
+        self._shoot(puck, direction, PASS_VELOCITY)
 
-    def shoot(self, direction):
-        self._shoot(SHOT_VELOCITY)
+    def shoot(self, puck, direction):
+        self._shoot(puck, direction, SHOT_VELOCITY)
 
     def get_max_velocity(self):
         return MAX_PLAYER_VELOCITY
@@ -136,8 +124,8 @@ class Chaser_Controller(Controller):
         puck = game_state.puck
         player.acceleration = puck.pos - player.pos
         player.acceleration.scale_to_length(.1)
-        if player.have_posession():
-            player.shoot(random.uniform(0.0, 2 * math.pi), random.uniform(0.0, SHOT_VELOCITY))
+        if player.have_posession(puck):
+            player.shoot(puck, random.uniform(0.0, 2 * math.pi))
 
 class Puck(PhysicsBase):
     def __init__(self, x, y):
@@ -145,11 +133,11 @@ class Puck(PhysicsBase):
         self.image = pygame.Surface([PUCK_WIDTH, PUCK_HEIGHT])
         self.image.fill(black)
         self.rect = self.image.get_rect()
+        self.posession = None
 
     def handle_collision(self, target):
-        global posession
-        if not posession and type(target) is Player:
-            target.gain_posession(self)
+        if not self.posession and type(target) is Player:
+            self.posession = target
 
     def get_max_velocity(self):
         return MAX_PUCK_VELOCITY

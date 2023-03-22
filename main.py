@@ -1,5 +1,7 @@
 import pygame
 import hockey
+import time
+from hockey.constants import FRAME_RATE
 
 # To do list:
 
@@ -13,10 +15,13 @@ import hockey
 # - Create the AI
 # - Add icing/offside
 
+clock = pygame.time.Clock()
+
 class HockeyGame():
     def __init__(self, dis):
         self.game = hockey.Game(dis)
         self.player = self.game.player
+        self.puck = self.game.puck
 
     def run_manual_game(self):
         game_over = False
@@ -27,7 +32,7 @@ class HockeyGame():
                     game_over = True
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_SPACE:
-                        self.player.shoot(self.player.get_direction())
+                        self.player.shoot(self.puck, self.player.get_direction())
                     if event.key == pygame.K_LEFT:
                         self.player.accelerate(-1, 0)
                     if event.key == pygame.K_RIGHT:
@@ -37,7 +42,7 @@ class HockeyGame():
                     if event.key == pygame.K_DOWN:
                         self.player.accelerate(0, 1)
                     if event.key == pygame.K_p:
-                        self.player.passing(self.player.get_direction())
+                        self.player.passing(self.puck, self.player.get_direction())
 
                 if event.type == pygame.KEYUP:
                     if event.key == pygame.K_LEFT:
@@ -50,6 +55,7 @@ class HockeyGame():
                         self.player.coast()
             self.game.update(event)
             self.game.draw()
+            clock.tick(FRAME_RATE)
         pygame.quit()
         quit()
 

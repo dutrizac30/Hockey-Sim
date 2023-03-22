@@ -152,8 +152,9 @@ class TopBoard(pygame.sprite.Sprite):
         self.rect.y = 0
 
     def handle_collision(self, target):
-        target.pos.y = -target.pos.y
+        target.pos.y = 0
         target.velocity.y = -target.velocity.y
+
 
 class BottomBoard(pygame.sprite.Sprite):
     def __init__(self):
@@ -178,8 +179,9 @@ class LeftBoard(pygame.sprite.Sprite):
         self.rect.y = BOARD_THICKNESS
 
     def handle_collision(self, target):
-        target.pos.x = -target.pos.x
+        target.pos.x = 0
         target.velocity.x = -target.velocity.x
+        print(target.pos)
 
 class RightBoard(pygame.sprite.Sprite):
     def __init__(self):
@@ -191,7 +193,8 @@ class RightBoard(pygame.sprite.Sprite):
         self.rect.y = BOARD_THICKNESS
 
     def handle_collision(self, target):
-        target.pos.x = (RINK_WIDTH - target.rect.width) - (target.pos.x - (RINK_WIDTH - target.rect.width))
+        target.pos.x = (RINK_WIDTH - target.rect.width)
+        print(target.pos)
         target.velocity.x = -target.velocity.x
 
 def draw_rink_line(rink, horizontal, width, colour):

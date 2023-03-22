@@ -26,7 +26,7 @@ class Game:
         self.puck = Puck(200, 80)
         self.addMovingSprite(self.player)
         self.addMovingSprite(self.puck)
-        self.addMovingSprite(Player(blue, 60, 70, Chaser_Controller()))
+        # self.addMovingSprite(Player(blue, 60, 70, Chaser_Controller()))
         self.addFixedSprite(Net(6, (85 - 6) / 2))
         self.addFixedSprite(Net(190, (85 - 6) / 2, True))
         self.posession = None
@@ -53,4 +53,11 @@ class Game:
             for collided in collisions:
                 if sprite != collided:
                     sprite.handle_collision(collided)
+        if self.is_out_of_bounds(self.puck):
+            self.puck.pos.update(RINK_WIDTH / 2, RINK_HEIGHT / 2)
+            self.puck.velocity.update(0, 0)
+    
+    def is_out_of_bounds(self, sprite):
+        rink = pygame.Rect(0, 0, RINK_WIDTH, RINK_HEIGHT)
+        return not rink.contains(sprite.rect)
 

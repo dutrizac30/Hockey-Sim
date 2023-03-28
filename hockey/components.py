@@ -12,8 +12,8 @@ class Net(pygame.sprite.Sprite):
         self.image = pygame.Surface([NET_WIDTH, NET_HEIGHT], pygame.SRCALPHA, 32)
         self.image = self.image.convert_alpha()
         self.rect = self.image.get_rect()
-        self.rect.x = x * RINK_SCALE
-        self.rect.y = y * RINK_SCALE
+        self.rect.x = x * RINK_SCALE + BOARD_THICKNESS
+        self.rect.y = y * RINK_SCALE + BOARD_THICKNESS
         pygame.draw.rect(self.image, red, [0, 0, self.rect.width, self.rect.height], border_top_left_radius= 1 * RINK_SCALE, border_bottom_left_radius= 1 * RINK_SCALE,)
         if flip:
             self.image = pygame.transform.flip(self.image, True, False)

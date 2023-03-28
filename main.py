@@ -5,8 +5,6 @@ from hockey.constants import FRAME_RATE
 
 # To do list:
 
-# - Fix position of nets
-# - Stop puck from going through board
 # - Detect puck in net
 # - Fall down when hitting boards too fast/ gettting hit with puck
 # - Add goalie

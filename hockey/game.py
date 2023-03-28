@@ -47,17 +47,28 @@ class Game:
 
     def update(self, event):
         self.all_sprites_list.update(self.game_state, event)
-        collisions_map = pygame.sprite.groupcollide(self.all_sprites_list, self.moving_sprites_list, False, False)
+        collisions_map = pygame.sprite.groupcollide(self.all_sprites_list, self.moving_sprites_list, False, False, collider)
         for sprite in collisions_map.keys():
             collisions = collisions_map[sprite]
             for collided in collisions:
                 if sprite != collided:
                     sprite.handle_collision(collided)
-        if self.is_out_of_bounds(self.puck):
-            self.puck.pos.update(RINK_WIDTH / 2, RINK_HEIGHT / 2)
-            self.puck.velocity.update(0, 0)
+        # if self.is_out_of_bounds(self.puck):
+        #     self.puck.pos.update(RINK_WIDTH / 2, RINK_HEIGHT / 2)
+        #     self.puck.velocity.update(0, 0)
     
     def is_out_of_bounds(self, sprite):
         rink = pygame.Rect(0, 0, RINK_WIDTH, RINK_HEIGHT)
         return not rink.contains(sprite.rect)
+    
+def collider(a, b):
+    if isinstance(a, Board):
+        custom_collider = a.get_collider()
+        return custom_collider(a, b)
+    if isinstance(b, Board):
+        custom_collider = b.get_collider()
+        return custom_collider(b, a)
+    
+    return pygame.sprite.collide_rect(a, b)
+
 

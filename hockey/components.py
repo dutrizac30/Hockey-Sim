@@ -141,60 +141,82 @@ class Puck(PhysicsBase):
 
     def get_max_velocity(self):
         return MAX_PUCK_VELOCITY
-
-class TopBoard(pygame.sprite.Sprite):
+    
+class Board(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
+
+class TopBoard(Board):
+    def __init__(self):
+        Board.__init__(self)
         self.image = pygame.Surface([RINK_WIDTH, BOARD_THICKNESS])
         self.image.fill(yellow)
         self.rect = self.image.get_rect()
         self.rect.x = BOARD_THICKNESS
         self.rect.y = 0
+        
+    def get_collider(self):
+        def custom_collider(board, other):
+            return other.rect.y < self.rect.y + self.rect.height
+        return custom_collider
 
     def handle_collision(self, target):
-        target.pos.y = 0
+        target.pos.y = self.rect.height
         target.velocity.y = -target.velocity.y
 
 
-class BottomBoard(pygame.sprite.Sprite):
+class BottomBoard(Board):
     def __init__(self):
-        pygame.sprite.Sprite.__init__(self)
+        Board.__init__(self)
         self.image = pygame.Surface([RINK_WIDTH, BOARD_THICKNESS])
         self.image.fill(yellow)
         self.rect = self.image.get_rect()
         self.rect.x = BOARD_THICKNESS
         self.rect.y = RINK_HEIGHT + BOARD_THICKNESS
 
+    def get_collider(self):
+        def custom_collider(board, other):
+            return other.rect.y + other.rect.height > self.rect.y
+        return pygame.sprite.collide_rect
+
     def handle_collision(self, target):
-        target.pos.y = (RINK_HEIGHT - target.rect.height) - (target.pos.y - (RINK_HEIGHT - target.rect.height))
+        target.pos.y = self.rect.y - target.rect.height
         target.velocity.y = -target.velocity.y
 
-class LeftBoard(pygame.sprite.Sprite):
+class LeftBoard(Board):
     def __init__(self):
-        pygame.sprite.Sprite.__init__(self)
+        Board.__init__(self)
         self.image = pygame.Surface([BOARD_THICKNESS, RINK_HEIGHT])
         self.image.fill(yellow)
         self.rect = self.image.get_rect()
         self.rect.x = 0
         self.rect.y = BOARD_THICKNESS
 
-    def handle_collision(self, target):
-        target.pos.x = 0
-        target.velocity.x = -target.velocity.x
-        print(target.pos)
+    def get_collider(self):
+        def custom_collider(board, other):
+            return other.rect.x < self.rect.x + self.rect.width
+        return custom_collider
 
-class RightBoard(pygame.sprite.Sprite):
+    def handle_collision(self, target):
+        target.pos.x = self.rect.width
+        target.velocity.x = -target.velocity.x
+
+class RightBoard(Board):
     def __init__(self):
-        pygame.sprite.Sprite.__init__(self)
+        Board.__init__(self)
         self.image = pygame.Surface([BOARD_THICKNESS, RINK_HEIGHT])
         self.image.fill(yellow)
         self.rect = self.image.get_rect()
         self.rect.x = RINK_WIDTH + BOARD_THICKNESS
         self.rect.y = BOARD_THICKNESS
 
+    def get_collider(self):
+        def custom_collider(board, other):
+            return other.rect.x + other.rect.width > self.rect.x
+        return custom_collider
+
     def handle_collision(self, target):
-        target.pos.x = (RINK_WIDTH - target.rect.width)
-        print(target.pos)
+        target.pos.x = self.rect.x - target.rect.width
         target.velocity.x = -target.velocity.x
 
 def draw_rink_line(rink, horizontal, width, colour):

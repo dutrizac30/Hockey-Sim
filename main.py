@@ -67,3 +67,4 @@ def run_game():
     game.run_manual_game()
 
 run_game()
+

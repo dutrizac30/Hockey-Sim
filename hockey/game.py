@@ -29,6 +29,8 @@ class Game:
         # self.addMovingSprite(Player(blue, 60, 70, Chaser_Controller()))
         self.addFixedSprite(Net(6, (85 - 6) / 2))
         self.addFixedSprite(Net(190, (85 - 6) / 2, True))
+        self.addFixedSprite(GoalBox(9 * RINK_SCALE, (85 - 4) / 2 * RINK_SCALE))
+        self.addFixedSprite(GoalBox(190 * RINK_SCALE - 1, (85 - 4) / 2 * RINK_SCALE))
         self.posession = None
 
         self.game_state = types.SimpleNamespace()

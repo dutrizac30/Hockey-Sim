@@ -22,6 +22,20 @@ class Net(pygame.sprite.Sprite):
         target.pos = target.pos - target.velocity
         target.velocity = -target.velocity
 
+class GoalBox(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        self.image = pygame.Surface([GOAL_BOX_WIDTH, GOAL_BOX_HEIGHT], pygame.SRCALPHA, 32)
+        self.image = self.image.convert_alpha()
+        self.rect = self.image.get_rect()
+        self.rect.x = x + BOARD_THICKNESS
+        self.rect.y = y + BOARD_THICKNESS
+        pygame.draw.rect(self.image, black, [0, 0, self.rect.width, self.rect.height])
+
+    def handle_collision(self, target):
+        if isinstance(target, Puck):
+            print("He shoots he scores!")
+
 class PhysicsBase(pygame.sprite.Sprite):
     def __init__(self, x, y):
        pygame.sprite.Sprite.__init__(self)
@@ -243,3 +257,4 @@ def drawRink(display):
     #Right Goalline
     draw_rink_line(rink, 190, thin_line_width, red)
     display.blit(rink, (BOARD_THICKNESS, BOARD_THICKNESS))
+

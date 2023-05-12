@@ -1,14 +1,13 @@
 import pygame
 import hockey
 import time
-from hockey.constants import FRAME_RATE
+from hockey.constants import *
 
 # To do list:
 
-# - Detect puck in net
+# - Return puck to center after goal
 # - Fall down when hitting boards too fast/ gettting hit with puck
 # - Add goalie
-# - Keep score
 # - Fill all positions on ice
 # - Create the AI
 # - Add icing/offside
@@ -51,6 +50,11 @@ class HockeyGame():
                         self.player.coast()
                     if event.key == pygame.K_DOWN:
                         self.player.coast()
+                if event.type == LEFT_GOAL_EVENT:
+                    self.game.get_game_state().left_score += 1
+                if event.type == RIGHT_GOAL_EVENT:
+                    self.game.get_game_state().right_score += 1
+
             self.game.update(event)
             self.game.draw()
             clock.tick(FRAME_RATE)
@@ -59,6 +63,7 @@ class HockeyGame():
 
 def run_game():
     pygame.init()
+    pygame.font.init() 
     dis = pygame.display.set_mode((hockey.SCREEN_WIDTH, hockey.SCREEN_HEIGHT))
     pygame.display.set_caption('Hockey Sim')
     game = HockeyGame(dis)

@@ -23,18 +23,19 @@ class Net(pygame.sprite.Sprite):
         target.velocity = -target.velocity
 
 class GoalBox(pygame.sprite.Sprite):
-    def __init__(self, x, y):
+    def __init__(self, x, y, event_id):
         super().__init__()
         self.image = pygame.Surface([GOAL_BOX_WIDTH, GOAL_BOX_HEIGHT], pygame.SRCALPHA, 32)
         self.image = self.image.convert_alpha()
         self.rect = self.image.get_rect()
         self.rect.x = x + BOARD_THICKNESS
         self.rect.y = y + BOARD_THICKNESS
+        self.event_id = event_id
         pygame.draw.rect(self.image, black, [0, 0, self.rect.width, self.rect.height])
 
     def handle_collision(self, target):
         if isinstance(target, Puck):
-            print("He shoots he scores!")
+            pygame.event.post(pygame.event.Event(self.event_id))
 
 class PhysicsBase(pygame.sprite.Sprite):
     def __init__(self, x, y):
